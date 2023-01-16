@@ -21,7 +21,6 @@ public class UserController {
         if (UserValidator.isValid(user)) {
             user.setId(id);
             id++;
-            if (user.getName() == null || user.getName().isBlank()) user.setName(user.getLogin());
             users.put(user.getId(), user);
             log.info("Добавлен пользователь :" + user);
             return user;
@@ -34,7 +33,6 @@ public class UserController {
     public User update(@RequestBody User user) throws RuntimeException {
         if (UserValidator.isValid(user)) {
             if (users.containsKey(user.getId())) {
-                if (user.getName() == null || user.getName().isBlank()) user.setName(user.getLogin());
                 log.info("Пользователь :" + users.get(user.getId()) + " заменён на " + user);
                 users.put(user.getId(), user);
                 return user;
