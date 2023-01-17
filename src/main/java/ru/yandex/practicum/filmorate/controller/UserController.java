@@ -2,10 +2,9 @@ package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.Exception.ValidationException;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.controller.validator.UserValidator;
 import ru.yandex.practicum.filmorate.model.User;
-
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -17,7 +16,7 @@ public class UserController {
     Map<Integer, User> users = new HashMap<>();
 
     @PostMapping(value = "/users")
-    public User create(@RequestBody User user) throws ValidationException {
+    public User create(@RequestBody User user){
         if (UserValidator.isValid(user)) {
             user.setId(id);
             id++;
@@ -30,7 +29,7 @@ public class UserController {
     }
 
     @PutMapping(value = "/users")
-    public User update(@RequestBody User user) throws RuntimeException {
+    public User update(@RequestBody User user){
         if (UserValidator.isValid(user)) {
             if (users.containsKey(user.getId())) {
                 log.info("Пользователь :" + users.get(user.getId()) + " заменён на " + user);

@@ -11,12 +11,17 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
-public class FilmValidatorTest {
+class FilmValidatorTest {
     private Film film;
 
     @BeforeEach
     void beforeEach() {
-        film = new Film(1,"Good film","Very good film",LocalDate.of(2023, 1, 16),95L);
+        film = Film.builder()
+                .name("Good film")
+                .description("Very good film")
+                .releaseDate(LocalDate.of(2023, 1, 16))
+                .duration(95L)
+                .build();
     }
 
     @Test
@@ -80,6 +85,4 @@ public class FilmValidatorTest {
         film.setDuration(-1L);
         assertFalse(FilmValidator.isValid(film));
     }
-
-
 }

@@ -1,39 +1,57 @@
 package ru.yandex.practicum.filmorate;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.boot.SpringApplication;
-import org.springframework.context.ConfigurableApplicationContext;
+import org.junit.jupiter.api.*;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.controller.FilmController;
 import ru.yandex.practicum.filmorate.model.Film;
 import java.time.LocalDate;
 import static org.junit.jupiter.api.Assertions.*;
 
-public class FilmControllerTest {
-   static private String[] agrs = new String[]{};
-   static private ConfigurableApplicationContext ctx;
-
+class FilmControllerTest {
 
    private Film film;
    private FilmController controller;
-    @BeforeAll
-    static void beforeAll(){
-//        ctx = SpringApplication.run(FilmorateApplication.class, agrs);
-    }
-    @AfterAll
-    static void AfterAll(){
-//        ctx.close();
-    }
     @BeforeEach
     void beforeEach() {
-        film = new Film(1,"Good film","Very good film",LocalDate.of(2023, 1, 16),95L);
+        film = Film.builder()
+                .name("Good film")
+                .description("Very good film")
+                .releaseDate(LocalDate.of(2023, 1, 16))
+                .duration(95L)
+                .build();
         controller = new FilmController();
     }
     @Test
     void testPostGood(){
         controller.create(film);
         assertTrue(controller.findAll().contains(film));
+    }
+    @Test
+    void testPostNull(){
+        //Если фильм не передали - ошибка валидации
+        Assertions.assertThrows(ValidationException.class, () -> controller.create(null));
+    }
+    @Test
+    void testPutGood(){
+        controller.create(film);
+        assertTrue(controller.findAll().contains(film));
+
+        Film filmToUpdate = Film.builder()
+                .id(film.getId())
+                .name("Good film update")
+                .description("Very good film updated")
+                .releaseDate(film.getReleaseDate().plusDays(1))
+                .duration(96L)
+                .build();
+        controller.update(filmToUpdate);
+        //Фильм один
+        assertEquals(1, controller.findAll().size());
+        //Обновлённый фильм
+        assertTrue(controller.findAll().contains(filmToUpdate));
+    }
+    @Test
+    void testPutNull(){
+        //Если фильм не передали - ошибка валидации
+        Assertions.assertThrows(ValidationException.class, () -> controller.update(null));
     }
 }

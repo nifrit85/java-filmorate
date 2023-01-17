@@ -1,16 +1,13 @@
 package ru.yandex.practicum.filmorate.controller;
 
-
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.Exception.ValidationException;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.controller.validator.FilmValidator;
 import ru.yandex.practicum.filmorate.model.Film;
-
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-
 
 @RestController
 @Slf4j
@@ -19,7 +16,7 @@ public class FilmController {
     Map<Integer, Film> films = new HashMap<>();
 
     @PostMapping(value = "/films")
-    public Film create(@RequestBody Film film) throws ValidationException {
+    public Film create(@RequestBody Film film){
         if (FilmValidator.isValid(film)) {
             film.setId(id);
             id++;
@@ -33,7 +30,7 @@ public class FilmController {
     }
 
     @PutMapping(value = "/films")
-    public Film update(@RequestBody Film film) throws RuntimeException {
+    public Film update(@RequestBody Film film){
         if (FilmValidator.isValid(film)) {
             if (films.containsKey(film.getId())) {
                 log.info("Фильм :" + films.get(film.getId()) + " заменён на " + film);

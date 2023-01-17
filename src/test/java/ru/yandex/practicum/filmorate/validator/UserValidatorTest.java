@@ -10,12 +10,17 @@ import java.time.LocalDate;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
-public class UserValidatorTest {
+class UserValidatorTest {
     private User user;
 
     @BeforeEach
     void beforeEach(){
-        user = new User(1,"yandex@yandex.ru","yandex","Аркадий Волож",LocalDate.of(1964,02,11));
+        user = User.builder()
+                .email("yandex@yandex.ru")
+                .login("yandex")
+                .name("Аркадий Волож")
+                .birthday(LocalDate.of(1964,2,11))
+                .build();
     }
     @Test
     void testGoodUser() {
@@ -34,6 +39,10 @@ public class UserValidatorTest {
         user.setEmail("  ");
         assertFalse(UserValidator.isValid(user));
         user.setName("yandex!yandex.ru");
+        assertFalse(UserValidator.isValid(user));
+        user.setName("yandex@y.a.n.d.e.x.ru");
+        assertFalse(UserValidator.isValid(user));
+        user.setName("@.ru");
         assertFalse(UserValidator.isValid(user));
     }
     @Test
