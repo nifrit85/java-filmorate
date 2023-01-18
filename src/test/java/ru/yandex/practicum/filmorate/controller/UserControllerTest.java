@@ -32,7 +32,7 @@ class UserControllerTest {
     }
     @Test
     void testPostNull(){
-        //Если фильм не передали - ошибка валидации
+        //Если пользователя не передали - ошибка валидации
         Assertions.assertThrows(ValidationException.class, () -> controller.create(null));
     }
     @Test
@@ -48,14 +48,14 @@ class UserControllerTest {
                 .birthday(LocalDate.of(1964,2,11))
                 .build();
         controller.update(userToUpdate);
-        //Фильм один
+        //Пользователь один
         assertEquals(1, controller.findAll().size());
-        //Обновлённый фильм
+        //Обновлённый пользователь
         assertTrue(controller.findAll().contains(userToUpdate));
     }
     @Test
     void testPutNull(){
-        //Если фильм не передали - ошибка валидации
+        //Если пользователя не передали - ошибка валидации
         Assertions.assertThrows(ValidationException.class, () -> controller.update(null));
     }
 }
