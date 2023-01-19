@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.model;
 
 import lombok.Builder;
 import lombok.Data;
+
 import javax.validation.constraints.*;
 import java.time.LocalDate;
 
@@ -9,11 +10,8 @@ import java.time.LocalDate;
 @Builder
 public class Film {
     long id;
-    @NotBlank(message = "Название не может быть пустым")
-    String name;
-    @Size(max = 200)
-    String description;
+    @NotBlank(message = "Название не может быть пустым") String name;
+    @Size(max = 200, message = "Максимальная длина описания — 200 символов") String description;
     LocalDate releaseDate;
-    @Positive
-    Long duration;
+    @Positive(message = "Продолжительность фильма должна быть положительной") Long duration;
 }

@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.controller;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.controller.validator.UserValidator;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
 import javax.validation.Valid;
@@ -18,7 +19,12 @@ public class UserController {
 
     @PostMapping(value = "/users")
     public User create(@Valid @RequestBody User user) {
-        UserValidator.isValid(user);
+        try {
+            UserValidator.isValid(user);
+        } catch (ValidationException e) {
+            log.error("Ошибка валидации пользователя :" + e.getMessage() + " Данные пользователя: " + user);
+            throw e;
+        }
 
         user.setId(id);
         id++;
@@ -29,7 +35,12 @@ public class UserController {
 
     @PutMapping(value = "/users")
     public User update(@Valid @RequestBody User user) {
-        UserValidator.isValid(user);
+        try {
+            UserValidator.isValid(user);
+        } catch (ValidationException e) {
+            log.error("Ошибка валидации пользователя :" + e.getMessage() + " Данные пользователя: " + user);
+            throw e;
+        }
 
         if (users.containsKey(user.getId())) {
             log.info("Пользователь :" + users.get(user.getId()) + " заменён на " + user);
