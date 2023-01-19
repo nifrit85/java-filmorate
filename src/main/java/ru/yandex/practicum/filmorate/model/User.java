@@ -13,6 +13,7 @@ public class User {
     @NotBlank(message = "Адрес электронной почты не может быть пустым")
     String email;
     @NotBlank(message = "Логин не может быть пустым")
+    @Pattern(regexp = "\\S+",message = "Логин не может содержать пробелы")
     String login;
     String name;
     @Past(message = "Дата рождения не может быть в будущем")

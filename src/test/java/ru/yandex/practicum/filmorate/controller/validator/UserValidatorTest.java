@@ -34,21 +34,6 @@ class UserValidatorTest {
     }
 
     @Test
-    void testBadLogin() {
-        //логин не может содержать пробелы
-        user.setLogin("      ");
-        assertThrows(ValidationException.class,()->UserValidator.isValid(user));
-        user.setLogin("login ");
-        assertThrows(ValidationException.class,()->UserValidator.isValid(user));
-        user.setLogin(" login");
-        assertThrows(ValidationException.class,()->UserValidator.isValid(user));
-        user.setLogin(" login ");
-        assertThrows(ValidationException.class,()->UserValidator.isValid(user));
-        user.setLogin("lo gin");
-        assertThrows(ValidationException.class,()->UserValidator.isValid(user));
-    }
-
-    @Test
     void testBadName() {
         //имя для отображения может быть пустым — в таком случае будет использован логин
         user.setName("");
