@@ -5,6 +5,8 @@ import lombok.Data;
 
 import javax.validation.constraints.*;
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 @Builder
@@ -14,4 +16,6 @@ public class Film {
     @Size(max = 200, message = "Максимальная длина описания — 200 символов") String description;
     LocalDate releaseDate;
     @Positive(message = "Продолжительность фильма должна быть положительной") Long duration;
+
+    Set<Long> likes;
 }

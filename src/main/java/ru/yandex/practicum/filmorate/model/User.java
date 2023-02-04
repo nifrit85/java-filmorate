@@ -5,6 +5,8 @@ import lombok.Data;
 
 import javax.validation.constraints.*;
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 @Builder
@@ -14,4 +16,6 @@ public class User {
     @NotBlank(message = "Логин не может быть пустым") @Pattern(regexp = "\\S+", message = "Логин не может содержать пробелы") String login;
     String name;
     @Past(message = "Дата рождения не может быть в будущем") LocalDate birthday;
+
+    Set<Long> friends;
 }

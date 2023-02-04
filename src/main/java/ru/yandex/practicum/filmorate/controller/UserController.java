@@ -10,9 +10,12 @@ package ru.yandex.practicum.filmorate.controller;
 //import java.util.HashMap;
 //import java.util.Map;
 //
-//@RestController
+
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
 //@Slf4j
-//public class UserController {
+public class UserController {
 //    private long id = 1;
 //    Map<Long, User> users = new HashMap<>();
 //
@@ -45,4 +48,4 @@ package ru.yandex.practicum.filmorate.controller;
 //    public Collection<User> findAll() {
 //        return users.values();
 //    }
-//}
+}
