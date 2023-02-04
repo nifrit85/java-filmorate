@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.controller.validator;
+package ru.yandex.practicum.filmorate.service.validator;
 
 import lombok.extern.slf4j.Slf4j;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
@@ -8,7 +8,7 @@ import ru.yandex.practicum.filmorate.model.User;
 public class UserValidator {
     public static void isValid(User user) {
         if (user == null) {
-            log.error("Ошибка валидации пользователя : Заполните данные о пользователе. Данные пользователя: " + user);
+            log.error("Ошибка валидации пользователя : Нет данных");
             throw new ValidationException("Заполните данные о пользователе");
         }
 
