@@ -1,6 +1,7 @@
-package ru.yandex.practicum.filmorate.storage.inMemoryImpl;
+package ru.yandex.practicum.filmorate.storage.imp.film;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
@@ -9,6 +10,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
+@Qualifier("InMemoryFilmStorage")
 @Slf4j
 public class InMemoryFilmStorage implements FilmStorage {
     Map<Long, Film> films = new HashMap<>();
