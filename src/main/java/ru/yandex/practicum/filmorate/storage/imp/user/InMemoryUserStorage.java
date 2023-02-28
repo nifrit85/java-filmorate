@@ -6,9 +6,8 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 
 @Slf4j
@@ -42,5 +41,33 @@ public class InMemoryUserStorage implements UserStorage {
     @Override
     public User getUserById(long id) {
         return users.get(id);
+    }
+
+    @Override
+    public void addFriend(long id, long friendId) {
+        getUserById(id).addFriend(getUserById(friendId).getId());
+        getUserById(friendId).addFriend(getUserById(id).getId());
+    }
+
+    @Override
+    public Collection<User> getFriends(long id) {
+        return getUserById(id).getFriends().stream().map(this::getUserById).collect(Collectors.toList());
+
+    }
+
+    @Override
+    public Collection<User> getCommonFriends(long id, long friendId) {
+        Set<Long> userFriendsIds = getUserById(id).getFriends();
+        Set<Long> friendFriendsIds = getUserById(friendId).getFriends();
+        Set<Long> commonFriends = new HashSet<>(userFriendsIds);
+        commonFriends.retainAll(friendFriendsIds);
+        return commonFriends.stream().map(this::getUserById).collect(Collectors.toList());
+
+    }
+
+    @Override
+    public void deleteFriend(long id, long friendId) {
+        getUserById(id).deleteFriend(friendId);
+        getUserById(friendId).deleteFriend(id);
     }
 }

@@ -92,6 +92,26 @@ public class FilmDb implements FilmStorage {
         return filmList;
     }
 
+    @Override
+    public void addLike(Long id, Long userId) {
+        String sqlQuery = "insert into LIKES (FILM_ID,USER_ID) VALUES (?, ?);";
+        jdbcTemplate.update(sqlQuery, id, userId);
+        Film film = getFilmById(id);
+        if (film != null){
+            film.addLike(userId);
+        }
+    }
+
+    @Override
+    public void removeLike(Long id, Long userId) {
+        String sqlQuery = "delete from LIKES where FILM_ID = ? and USER_ID = ?";
+        jdbcTemplate.update(sqlQuery, id, userId);
+        Film film = getFilmById(id);
+        if (film != null){
+            film.deleteLike(userId);
+        }
+    }
+
     private long createFilm(Film film) {
         SimpleJdbcInsert simpleJdbcInsert = new SimpleJdbcInsert(jdbcTemplate).withTableName("FILMS").usingGeneratedKeyColumns("film_id");
         return simpleJdbcInsert.executeAndReturnKey(film.toMap()).longValue();

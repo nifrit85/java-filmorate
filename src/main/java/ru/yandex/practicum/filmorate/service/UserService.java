@@ -20,30 +20,24 @@ public class UserService {
     private final UserStorage storage;
 
     @Autowired
-    public UserService(@Qualifier("UserDb")UserStorage storage) {
+    public UserService(@Qualifier("UserDb") UserStorage storage) {
         this.storage = storage;
     }
 
     public void addFriend(long id, long friendId) {
-        getUserById(id).addFriend(getUserById(friendId).getId());
-        getUserById(friendId).addFriend(getUserById(id).getId());
+        this.storage.addFriend(id, friendId);
     }
 
     public void deleteFriend(long id, long friendId) {
-        getUserById(id).deleteFriend(friendId);
-        getUserById(friendId).deleteFriend(id);
+        this.storage.deleteFriend(id, friendId);
     }
 
     public Collection<User> getFriends(long id) {
-        return getUserById(id).getFriends().stream().map(storage::getUserById).collect(Collectors.toList());
+        return this.storage.getFriends(id);
     }
 
     public Collection<User> getCommonFriends(long id, long friendId) {
-        Set<Long> userFriendsIds = getUserById(id).getFriends();
-        Set<Long> friendFriendsIds = getUserById(friendId).getFriends();
-        Set<Long> commonFriends = new HashSet<>(userFriendsIds);
-        commonFriends.retainAll(friendFriendsIds);
-        return commonFriends.stream().map(storage::getUserById).collect(Collectors.toList());
+        return this.storage.getCommonFriends(id, friendId);
     }
 
     public User create(User user) {

@@ -28,11 +28,11 @@ public class FilmService {
     }
 
     public void addLike(long filmId, long userId) {
-        getFilmById(filmId).addLike(userService.getUserById(userId).getId());
+        storage.addLike(filmId,userId);
     }
 
     public void deleteLike(long filmId, long userId) {
-        getFilmById(filmId).deleteLike(userService.getUserById(userId).getId());
+        storage.removeLike(filmId,userId);
     }
 
     public Collection<Film> getMostPopularFilms(int count) {
