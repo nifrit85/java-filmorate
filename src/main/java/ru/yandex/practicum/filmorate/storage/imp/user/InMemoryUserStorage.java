@@ -34,8 +34,8 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public Collection<User> findAll() {
-        return users.values();
+    public List<User> findAll() {
+        return new ArrayList<>(users.values());
     }
 
     @Override
@@ -50,19 +50,22 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public Collection<User> getFriends(long id) {
-        return getUserById(id).getFriends().stream().map(this::getUserById).collect(Collectors.toList());
+    public List<User> getFriends(long id) {
+        return getUserById(id)
+                .getFriends()
+                .stream()
+                .map(this::getUserById)
+                .collect(Collectors.toList());
 
     }
 
     @Override
-    public Collection<User> getCommonFriends(long id, long friendId) {
+    public List<User> getCommonFriends(long id, long friendId) {
         Set<Long> userFriendsIds = getUserById(id).getFriends();
         Set<Long> friendFriendsIds = getUserById(friendId).getFriends();
         Set<Long> commonFriends = new HashSet<>(userFriendsIds);
         commonFriends.retainAll(friendFriendsIds);
         return commonFriends.stream().map(this::getUserById).collect(Collectors.toList());
-
     }
 
     @Override

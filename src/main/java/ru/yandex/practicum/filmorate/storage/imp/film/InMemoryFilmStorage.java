@@ -33,8 +33,8 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public Collection<Film> findAll() {
-        return films.values();
+    public List<Film> findAll() {
+        return new ArrayList<>(films.values());
     }
 
     @Override
@@ -43,7 +43,7 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public Collection<Film> getMostPopularFilms(int count) {
+    public List<Film> getMostPopularFilms(int count) {
         return films
                 .values()
                 .stream()
@@ -55,7 +55,7 @@ public class InMemoryFilmStorage implements FilmStorage {
     @Override
     public void addLike(Long id, Long userId) {
         Film film = getFilmById(id);
-        if (film != null){
+        if (film != null) {
             film.addLike(userId);
         }
     }
@@ -63,7 +63,7 @@ public class InMemoryFilmStorage implements FilmStorage {
     @Override
     public void removeLike(Long id, Long userId) {
         Film film = getFilmById(id);
-        if (film != null){
+        if (film != null) {
             film.deleteLike(userId);
         }
     }

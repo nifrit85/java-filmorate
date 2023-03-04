@@ -11,8 +11,8 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class ErrorHandler {
-
     private static final String ERROR = "error";
+
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Map<String, String> handleValidationException(final ValidationException e) {
@@ -30,5 +30,4 @@ public class ErrorHandler {
     public Map<String, String> handleThrowable(final Throwable e) {
         return Map.of(ERROR, e.getMessage());
     }
-
 }

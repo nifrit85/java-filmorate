@@ -21,7 +21,12 @@ class UserValidatorTest {
 
     @BeforeEach
     void beforeEach() {
-        user = User.builder().email("yandex@yandex.ru").login("yandex").name("Аркадий Волож").birthday(LocalDate.of(1964, 2, 11)).build();
+        user = User.builder()
+                .email("yandex@yandex.ru")
+                .login("yandex")
+                .name("Аркадий Волож")
+                .birthday(LocalDate.of(1964, 2, 11))
+                .build();
 
         ValidatorFactory validatorFactory = Validation.buildDefaultValidatorFactory();
         validator = validatorFactory.usingContext().getValidator();

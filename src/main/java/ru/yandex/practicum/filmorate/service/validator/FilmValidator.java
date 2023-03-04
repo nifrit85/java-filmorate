@@ -13,7 +13,8 @@ public class FilmValidator {
             log.error("Ошибка валидации фильма : Заполните данные о фильме. (null)");
             throw new ValidationException("Заполните данные о фильме");
         }
-        if (film.getReleaseDate() != null && film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
+        if (film.getReleaseDate() != null
+                && film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
             log.error("Ошибка валидации фильма : Дата релиза не может быть раньше 28 декабря 1895 года. Данные фильма: " + film);
             throw new ValidationException("Дата релиза не может быть раньше 28 декабря 1895 года");
         }

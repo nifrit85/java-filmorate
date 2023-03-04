@@ -9,17 +9,15 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.validator.FilmValidator;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
-import java.util.Collection;
+import java.util.List;
 
 
 @Slf4j
 @Service
 
 public class FilmService {
-
     private final FilmStorage storage;
     private final UserService userService;
-
 
     @Autowired
     public FilmService(@Qualifier("FilmDb") FilmStorage storage, UserService service) {
@@ -28,14 +26,18 @@ public class FilmService {
     }
 
     public void addLike(long filmId, long userId) {
-        storage.addLike(filmId,userId);
+        getFilmById(filmId);
+        userService.getUserById(userId);
+        storage.addLike(filmId, userId);
     }
 
     public void deleteLike(long filmId, long userId) {
-        storage.removeLike(filmId,userId);
+        getFilmById(filmId);
+        userService.getUserById(userId);
+        storage.removeLike(filmId, userId);
     }
 
-    public Collection<Film> getMostPopularFilms(int count) {
+    public List<Film> getMostPopularFilms(int count) {
         return storage.getMostPopularFilms(count);
     }
 
@@ -46,11 +48,11 @@ public class FilmService {
 
     public Film update(Film film) {
         FilmValidator.isValid(film);
-        getFilmById(film.getId()); //Проверка на существование. Выдаёт исключение
+        getFilmById(film.getId());
         return storage.update(film);
     }
 
-    public Collection<Film> findAll() {
+    public List<Film> findAll() {
         return storage.findAll();
     }
 

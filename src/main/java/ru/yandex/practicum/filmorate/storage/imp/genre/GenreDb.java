@@ -6,10 +6,13 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.GenreStorage;
+import ru.yandex.practicum.filmorate.storage.query.QueryForGenre;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Component
 public class GenreDb implements GenreStorage {
-
     private final JdbcTemplate jdbcTemplate;
     private String sqlQuery;
 
@@ -20,15 +23,34 @@ public class GenreDb implements GenreStorage {
 
     @Override
     public Genre getGenreById(Integer id) {
-        sqlQuery = "SELECT * FROM GENRES WHERE GENRE_ID = ?";
+        sqlQuery = QueryForGenre.SELECT_BY_ID;
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sqlQuery, id);
         if (rowSet.next()) {
-            return Genre.builder()
-                    .id(rowSet.getInt("GENRE_ID"))
-                    .name(rowSet.getString("NAME"))
-                    .build();
+            return genreBuilder(rowSet);
         } else {
             return null;
         }
+    }
+
+    @Override
+    public List<Genre> findAll() {
+        List<Genre> genreList = new ArrayList<>();
+
+        sqlQuery = QueryForGenre.SELECT_ALL;
+        SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sqlQuery);
+        while (rowSet.next()) {
+            Genre genre = genreBuilder(rowSet);
+            if (genre != null) {
+                genreList.add(genre);
+            }
+        }
+        return genreList;
+    }
+
+    private Genre genreBuilder(SqlRowSet rowSet) {
+        return Genre.builder()
+                .id(rowSet.getInt("GENRE_ID"))
+                .name(rowSet.getString("NAME"))
+                .build();
     }
 }

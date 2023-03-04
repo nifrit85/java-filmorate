@@ -9,10 +9,8 @@ import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.validator.UserValidator;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.List;
+
 
 @Slf4j
 @Service
@@ -21,22 +19,30 @@ public class UserService {
 
     @Autowired
     public UserService(@Qualifier("UserDb") UserStorage storage) {
+
         this.storage = storage;
     }
 
     public void addFriend(long id, long friendId) {
+        getUserById(id);
+        getUserById(friendId);
         this.storage.addFriend(id, friendId);
     }
 
     public void deleteFriend(long id, long friendId) {
+        getUserById(id);
+        getUserById(friendId);
         this.storage.deleteFriend(id, friendId);
     }
 
-    public Collection<User> getFriends(long id) {
+    public List<User> getFriends(long id) {
+        getUserById(id);
         return this.storage.getFriends(id);
     }
 
-    public Collection<User> getCommonFriends(long id, long friendId) {
+    public List<User> getCommonFriends(long id, long friendId) {
+        getUserById(id);
+        getUserById(friendId);
         return this.storage.getCommonFriends(id, friendId);
     }
 
@@ -47,11 +53,11 @@ public class UserService {
 
     public User update(User user) {
         UserValidator.isValid(user);
-        getUserById(user.getId()); //Проверка на существование. Выдаёт исключение
+        getUserById(user.getId());
         return storage.update(user);
     }
 
-    public Collection<User> findAll() {
+    public List<User> findAll() {
         return storage.findAll();
     }
 

@@ -16,17 +16,23 @@ import java.util.Set;
 @Builder
 public class Film {
     private final Set<Long> likes = new HashSet<>();
-    Set<Genre> genres;
+    private final Set<Genre> genres = new HashSet<>();
     long id;
-    @NotBlank(message = "Название не может быть пустым") String name;
-    @Size(max = 200, message = "Максимальная длина описания — 200 символов") String description;
+    @NotBlank(message = "Название не может быть пустым")
+    String name;
+    @Size(max = 200, message = "Максимальная длина описания — 200 символов")
+    String description;
     LocalDate releaseDate;
-    @Positive(message = "Продолжительность фильма должна быть положительной") Long duration;
-
+    @Positive(message = "Продолжительность фильма должна быть положительной")
+    Long duration;
     Mpa mpa;
 
     public void addLike(long id) {
         this.likes.add(id);
+    }
+
+    public void addGenre(Genre genre) {
+        this.genres.add(genre);
     }
 
     public void deleteLike(long id) {
