@@ -12,19 +12,19 @@ import java.util.List;
 @Slf4j
 @Service
 public class GenreService {
-    private final GenreStorage storage;
+    private final GenreStorage genreStorage;
 
     @Autowired
-    public GenreService(GenreStorage storage) {
-        this.storage = storage;
+    public GenreService(GenreStorage genreStorage) {
+        this.genreStorage = genreStorage;
     }
 
     public List<Genre> findAll() {
-        return storage.findAll();
+        return genreStorage.findAll();
     }
 
     public Genre getGenreById(Integer id) {
-        Genre genre = storage.getGenreById(id);
+        Genre genre = genreStorage.getGenreById(id);
         if (genre == null) {
             throw new NotFoundException("Жанр", id);
         }

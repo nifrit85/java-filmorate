@@ -16,6 +16,7 @@ import ru.yandex.practicum.filmorate.storage.query.QueryForFilms;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -23,7 +24,6 @@ import java.util.List;
 public class FilmDb implements FilmStorage {
     private final JdbcTemplate jdbcTemplate;
     private final FilmGenresStorage filmGenresStorage;
-    private String sqlQuery;
 
     @Autowired
     public FilmDb(JdbcTemplate jdbcTemplate, FilmGenresStorage filmGenresStorage) {
@@ -36,14 +36,11 @@ public class FilmDb implements FilmStorage {
         long filmId = createFilm(film);
         film.setId(filmId);
         updateGenresInFilm(film);
-        Film filmToReturn = getFilmById(filmId);
-        log.info("Добавлен фильм :" + filmToReturn);
-        return filmToReturn;
+        return getFilmById(filmId);
     }
 
     @Override
     public Film update(Film film) {
-        log.info("Фильм :" + getFilmById(film.getId()) + " заменён на " + film);
         updateFilm(film);
         updateGenresInFilm(film);
         return getFilmById(film.getId());
@@ -51,10 +48,10 @@ public class FilmDb implements FilmStorage {
 
     @Override
     public List<Film> findAll() {
-        sqlQuery = QueryForFilms.SELECT
-                + QueryForFilms.FROM
-                + QueryForFilms.GROUP_BY
-                + QueryForFilms.ORDER_BY;
+        String sqlQuery = QueryForFilms.SELECT
+                        + QueryForFilms.FROM
+                        + QueryForFilms.GROUP_BY
+                        + QueryForFilms.ORDER_BY;
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sqlQuery);
         return parseSqlRowToFilmList(rowSet);
@@ -62,17 +59,19 @@ public class FilmDb implements FilmStorage {
 
     @Override
     public Film getFilmById(long id) {
-        sqlQuery = QueryForFilms.SELECT
-                + QueryForFilms.FROM
-                + QueryForFilms.WHERE_FILM_ID_EQUALS
-                + QueryForFilms.GROUP_BY
-                + QueryForFilms.ORDER_BY;
+        String sqlQuery = QueryForFilms.SELECT
+                        + QueryForFilms.FROM
+                        + QueryForFilms.WHERE_FILM_ID_EQUALS
+                        + QueryForFilms.GROUP_BY
+                        + QueryForFilms.ORDER_BY;
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sqlQuery, id);
         List<Film> filmList = parseSqlRowToFilmList(rowSet);
         if (!filmList.isEmpty()) {
+            log.debug("Фильм с ID: " + id + " успешно найден");
             return filmList.get(0);
         } else {
+            log.debug("Фильм с ID: " + id + " не найден в БД");
             return null;
         }
     }
@@ -81,8 +80,7 @@ public class FilmDb implements FilmStorage {
     public List<Film> getMostPopularFilms(int count) {
         List<Film> topFilms = new ArrayList<>();
         //Id популяпных фильмов
-        sqlQuery = QueryForFilms.REQUEST_MOST_POPULAR;
-        SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sqlQuery, count);
+        SqlRowSet rowSet = jdbcTemplate.queryForRowSet(QueryForFilms.REQUEST_MOST_POPULAR, count);
         while (rowSet.next()) {
             //Полная информация о каждом фильме
             long id = rowSet.getLong("FILM_ID");
@@ -93,19 +91,20 @@ public class FilmDb implements FilmStorage {
 
     @Override
     public void addLike(Long id, Long userId) {
-        sqlQuery = QueryForFilms.INSERT_LIKE;
-        jdbcTemplate.update(sqlQuery, id, userId);
+        jdbcTemplate.update(QueryForFilms.INSERT_LIKE, id, userId);
+        log.debug("Фильму с ID: " + id + " добавлен лайк от пользователя с ID: " + userId);
     }
 
     @Override
     public void removeLike(Long id, Long userId) {
-        sqlQuery = QueryForFilms.DELETE_LIKE;
-        jdbcTemplate.update(sqlQuery, id, userId);
+        jdbcTemplate.update(QueryForFilms.DELETE_LIKE, id, userId);
+        log.debug("У фильма с ID: " + id + " удалён лайк от пользователя с ID: " + userId);
     }
 
     private long createFilm(Film film) {
         SimpleJdbcInsert simpleJdbcInsert = new SimpleJdbcInsert(jdbcTemplate).withTableName("FILMS").usingGeneratedKeyColumns("film_id");
         long filmId = simpleJdbcInsert.executeAndReturnKey(film.toMap()).longValue();
+        log.debug("Фильм с ID: " + filmId + " успешно добавлен в БД");
         if (film.getMpa() != null) {
             setMpaId(film.getMpa().getId(), filmId);
         }
@@ -114,47 +113,58 @@ public class FilmDb implements FilmStorage {
 
     private void updateGenresInFilm(Film film) {
         filmGenresStorage.deleteAllGenres(film.getId());
+
         if (film.getGenres() != null) {
-            for (Genre genre : film.getGenres()) {
-                filmGenresStorage.addGenreToFilm(film.getId(), genre.getId());
-            }
+            List<Integer> genreList = film.getGenres().stream().map(Genre::getId).collect(Collectors.toList());
+            filmGenresStorage.addGenresToFilm(film.getId(),genreList);
         }
     }
 
     private void updateFilm(Film film) {
-        sqlQuery = QueryForFilms.UPDATE_FILM;
-        jdbcTemplate.update(sqlQuery, film.getName(), film.getDescription(), film.getReleaseDate(), film.getDuration(), film.getMpa().getId(), film.getId());
+        jdbcTemplate.update(QueryForFilms.UPDATE_FILM, film.getName(), film.getDescription(), film.getReleaseDate(), film.getDuration(), film.getMpa().getId(), film.getId());
+        log.debug("Фильм с ID: " + film.getId() + " успешно обновлён в БД");
     }
 
     private Film filmBuilder(SqlRowSet rowSet) {
-        Film film;
-        try {
-            film = Film.builder()
-                    .id(rowSet.getLong("FILM_ID"))
-                    .name(rowSet.getString("NAME"))
-                    .description(rowSet.getString("DESCRIPTION"))
-                    .releaseDate(rowSet.getDate("RELEASE_DATE").toLocalDate())
-                    .duration(rowSet.getLong("DURATION"))
-                    .build();
-        } catch (NullPointerException e) {
-            film = null;
+        Film film = Film.builder()
+                .id(rowSet.getLong("FILM_ID"))
+                .name(rowSet.getString("NAME"))
+                .description(rowSet.getString("DESCRIPTION"))
+                .duration(rowSet.getLong("DURATION"))
+                .build();
+
+        if (rowSet.getDate("RELEASE_DATE") != null && film != null) {
+            film.setReleaseDate(rowSet.getDate("RELEASE_DATE").toLocalDate());
+        }else if(rowSet.getDate("RELEASE_DATE") == null ){
+            log.debug("Ошибка получения даты релиза для фильма с ID: " + rowSet.getLong("FILM_ID"));
+        }else if (film == null){
+            log.debug("Ошибка создания фильма :" + rowSet);
         }
+
         return film;
     }
 
     private void addMpaFromRowSet(SqlRowSet rowSet, Film film) {
         int mpaId = rowSet.getInt("MPA_ID");
         if (mpaId != 0) {
-            Mpa mpa = Mpa.builder().id(mpaId).name(rowSet.getString("MPA_NAME")).build();
+            Mpa mpa = Mpa.builder()
+                    .id(mpaId)
+                    .name(rowSet.getString("MPA_NAME"))
+                    .build();
             film.setMpa(mpa);
+            log.debug("Фильму с ID: " + film.getId() + " установлен рейтинг: " + mpa.getName());
         }
     }
 
     private void addGenreFromRowSet(SqlRowSet rowSet, Film film) {
         int genreId = rowSet.getInt("GENRE_ID");
         if (genreId != 0) {
-            Genre genre = Genre.builder().id(genreId).name(rowSet.getString("GENRE_NAME")).build();
+            Genre genre = Genre.builder()
+                    .id(genreId)
+                    .name(rowSet.getString("GENRE_NAME"))
+                    .build();
             film.addGenre(genre);
+            log.debug("Фильму с ID: " + film.getId() + " добавлен жанр: " + genre.getName());
         }
     }
 
@@ -162,6 +172,7 @@ public class FilmDb implements FilmStorage {
         long userId = rowSet.getLong("USER_ID");
         if (userId != 0) {
             film.addLike(userId);
+            log.debug("Фильму с ID: " + film.getId() + " добавлен лайк от пользователя с ID: " + userId);
         }
     }
 
@@ -188,6 +199,8 @@ public class FilmDb implements FilmStorage {
                     addGenreFromRowSet(rowSet, film);
                     addLikeFromRowSet(rowSet, film);
                     filmList.add(film);
+                }else {
+                    log.debug("Ошибка создания фильма :" + rowSet);
                 }
 
             }
@@ -208,8 +221,8 @@ public class FilmDb implements FilmStorage {
     }
 
     private void setMpaId(Integer mpaId, Long filmId) {
-        sqlQuery = QueryForFilms.UPDATE_MPA_IN_FILM;
-        jdbcTemplate.update(sqlQuery, mpaId, filmId);
+        jdbcTemplate.update(QueryForFilms.UPDATE_MPA_IN_FILM, mpaId, filmId);
+        log.debug("Рейтинг ID: " + mpaId + " добавлен фильму ID: " + filmId);
     }
 }
 

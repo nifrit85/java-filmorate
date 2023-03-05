@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.storage.imp.mpa;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -12,10 +13,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Component
+@Slf4j
 public class MpaDb implements MpaStorage {
 
     private final JdbcTemplate jdbcTemplate;
-    private String sqlQuery;
 
     @Autowired
     public MpaDb(JdbcTemplate jdbcTemplate) {
@@ -24,11 +25,12 @@ public class MpaDb implements MpaStorage {
 
     @Override
     public Mpa getMpaById(Integer id) {
-        sqlQuery = QueryForMpa.SELECT_BY_ID;
-        SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sqlQuery, id);
+        SqlRowSet rowSet = jdbcTemplate.queryForRowSet(QueryForMpa.SELECT_BY_ID, id);
         if (rowSet.next()) {
+            log.debug("Рейтинг с ID: " + id + " успешно найден");
             return mpaBuilder(rowSet);
         } else {
+            log.debug("Рейтинг с ID: " + id + " не найден в БД");
             return null;
         }
     }
@@ -36,13 +38,13 @@ public class MpaDb implements MpaStorage {
     @Override
     public List<Mpa> findAll() {
         List<Mpa> mpaList = new ArrayList<>();
-
-        sqlQuery = QueryForMpa.SELECT_ALL;
-        SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sqlQuery);
+        SqlRowSet rowSet = jdbcTemplate.queryForRowSet(QueryForMpa.SELECT_ALL);
         while (rowSet.next()) {
             Mpa mpa = mpaBuilder(rowSet);
             if (mpa != null) {
                 mpaList.add(mpa);
+            }else {
+                log.debug("Ошибка создания рейтинг :" + rowSet);
             }
         }
         return mpaList;

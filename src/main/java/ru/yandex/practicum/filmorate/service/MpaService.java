@@ -12,19 +12,19 @@ import java.util.List;
 @Slf4j
 @Service
 public class MpaService {
-    private final MpaStorage storage;
+    private final MpaStorage mpaStorage;
 
     @Autowired
-    public MpaService(MpaStorage storage) {
-        this.storage = storage;
+    public MpaService(MpaStorage mpaStorage) {
+        this.mpaStorage = mpaStorage;
     }
 
     public List<Mpa> findAll() {
-        return storage.findAll();
+        return mpaStorage.findAll();
     }
 
     public Mpa getMpaById(Integer id) {
-        Mpa mpa = storage.getMpaById(id);
+        Mpa mpa = mpaStorage.getMpaById(id);
         if (mpa == null) {
             throw new NotFoundException("Рейтинг", id);
         }

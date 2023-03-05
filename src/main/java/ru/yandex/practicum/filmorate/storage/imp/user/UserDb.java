@@ -20,7 +20,6 @@ import java.util.List;
 @Qualifier("UserDb")
 public class UserDb implements UserStorage {
     private final JdbcTemplate jdbcTemplate;
-    private String sqlQuery;
 
     @Autowired
     public UserDb(JdbcTemplate jdbcTemplate) {
@@ -31,14 +30,11 @@ public class UserDb implements UserStorage {
     public User create(User user) {
         long userId = createUser(user);
         user.setId(userId);
-        User userToReturn = getUserById(userId);
-        log.info("Добавлен пользователь :" + userToReturn);
-        return userToReturn;
+        return getUserById(userId);
     }
 
     @Override
     public User update(User user) {
-        log.info("Пользователь :" + getUserById(user.getId()) + " заменён на " + user);
         updateUser(user);
         return getUserById(user.getId());
     }
@@ -46,13 +42,14 @@ public class UserDb implements UserStorage {
     @Override
     public List<User> findAll() {
         List<User> userList = new ArrayList<>();
-
-        sqlQuery = QueryForUsers.SELECT_ALL;
-        SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sqlQuery);
+        SqlRowSet rowSet = jdbcTemplate.queryForRowSet(QueryForUsers.SELECT_ALL);
         while (rowSet.next()) {
             User user = userBuilder(rowSet);
             if (user != null) {
                 userList.add(user);
+            }else {
+                log.debug("Ошибка создания пользователя : " + rowSet);
+
             }
         }
         return userList;
@@ -60,39 +57,33 @@ public class UserDb implements UserStorage {
 
     @Override
     public User getUserById(long id) {
-        sqlQuery = QueryForUsers.SELECT_BY_ID;
-        SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sqlQuery, id);
+        SqlRowSet rowSet = jdbcTemplate.queryForRowSet(QueryForUsers.SELECT_BY_ID, id);
         if (rowSet.next()) {
             return userBuilder(rowSet);
         }
+        log.debug("Ошибка получения пользователя с ID: " + id);
         return null;
     }
 
     private long createUser(User user) {
-        SimpleJdbcInsert simpleJdbcInsert = new SimpleJdbcInsert(jdbcTemplate)
-                .withTableName("USERS")
-                .usingGeneratedKeyColumns("USER_ID");
-        return simpleJdbcInsert.executeAndReturnKey(user.toMap()).longValue();
+        SimpleJdbcInsert simpleJdbcInsert = new SimpleJdbcInsert(jdbcTemplate).withTableName("USERS").usingGeneratedKeyColumns("USER_ID");
+        long userId = simpleJdbcInsert.executeAndReturnKey(user.toMap()).longValue();
+        log.debug("Пользователь с ID: " + userId + " успешно добавлен в БД");
+        return userId;
     }
 
     private void updateUser(User user) {
-        sqlQuery = QueryForUsers.UPDATE;
-        jdbcTemplate.update(sqlQuery, user.getEmail(), user.getLogin(), user.getName(), user.getBirthday(), user.getId());
+        jdbcTemplate.update(QueryForUsers.UPDATE, user.getEmail(), user.getLogin(), user.getName(), user.getBirthday(), user.getId());
+        log.debug("Пользователь с ID: " + user.getId() + " успешно обновлён в БД");
     }
 
     private User userBuilder(SqlRowSet rowSet) {
-        User user;
-        try {
-            user = User.builder()
-                    .id(rowSet.getLong("USER_ID"))
-                    .email(rowSet.getString("EMAIL"))
-                    .login(rowSet.getString("LOGIN"))
-                    .name(rowSet.getString("NAME"))
-                    .birthday(rowSet.getDate("BIRTHDAY").toLocalDate())
-                    .build();
+        User user = User.builder().id(rowSet.getLong("USER_ID")).email(rowSet.getString("EMAIL")).login(rowSet.getString("LOGIN")).name(rowSet.getString("NAME")).build();
 
-        } catch (NullPointerException e) {
-            user = null;
+        if (rowSet.getDate("BIRTHDAY") != null && user != null) {
+            user.setBirthday(rowSet.getDate("BIRTHDAY").toLocalDate());
+        } else if (rowSet.getDate("BIRTHDAY") == null) {
+            log.debug("Ошибка получения даты рождения для пользователя с ID: " + rowSet.getLong("USER_ID"));
         }
         return user;
     }
@@ -129,15 +120,17 @@ public class UserDb implements UserStorage {
     @Override
     public List<User> getFriends(long id) {
         List<User> userList = new ArrayList<>();
-        sqlQuery = QueryForUsers.SELECT_ALL
-                + "where "
-                + QueryForUsers.USER_ID_IN
-                + QueryForUsers.SELECT_FRIEND;
+        String sqlQuery = QueryForUsers.SELECT_ALL
+                        + "where "
+                        + QueryForUsers.USER_ID_IN
+                        + QueryForUsers.SELECT_FRIEND;
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sqlQuery, id, id);
         while (rowSet.next()) {
             User user = userBuilder(rowSet);
             if (user != null) {
                 userList.add(user);
+            } else {
+                log.debug("Ошибка создания пользователя :" + rowSet);
             }
         }
         return userList;
@@ -147,50 +140,55 @@ public class UserDb implements UserStorage {
     public List<User> getCommonFriends(long id, long friendId) {
         List<User> userList = new ArrayList<>();
 
-        sqlQuery = QueryForUsers.SELECT_ALL
-                + "where "
-                + QueryForUsers.USER_ID_IN
-                + QueryForUsers.SELECT_FRIEND
-                + "and "
-                + QueryForUsers.USER_ID_IN
-                + QueryForUsers.SELECT_FRIEND;
+        String sqlQuery = QueryForUsers.SELECT_ALL
+                        + "where "
+                        + QueryForUsers.USER_ID_IN
+                        + QueryForUsers.SELECT_FRIEND
+                        + "and "
+                        + QueryForUsers.USER_ID_IN
+                        + QueryForUsers.SELECT_FRIEND;
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sqlQuery, id, id, friendId, friendId);
         while (rowSet.next()) {
             User user = userBuilder(rowSet);
             if (user != null) {
                 userList.add(user);
+            } else {
+                log.debug("Ошибка создания пользователя :" + rowSet);
             }
         }
         return userList;
     }
 
     private Friendship getFriendship(long id, long friendId) {
-        sqlQuery = QueryForUsers.SELECT_FRIENDSHIP
-                + "union "
-                + QueryForUsers.SELECT_FRIENDSHIP;
+        String sqlQuery = QueryForUsers.SELECT_FRIENDSHIP
+                        + "union "
+                        + QueryForUsers.SELECT_FRIENDSHIP;
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sqlQuery, id, friendId, friendId, id);
         if (rowSet.next()) {
+            log.debug("Найдена дружба между пользователями " + id + " и " + friendId);
             return Friendship.builder().friendshipId(rowSet.getLong("FRIENDSHIP_ID")).userId(rowSet.getLong("USER_ID")).friendId(rowSet.getLong("FRIEND_ID")).isConfirmed(rowSet.getBoolean("IS_CONFIRMED")).build();
+
         } else {
+            log.debug("Не найдена дружба между пользователями " + id + " и " + friendId);
             return null;
         }
     }
 
     private void createFriendship(long id, long friendId) {
-        sqlQuery = QueryForUsers.INSERT_FRIENDSHIP;
-        jdbcTemplate.update(sqlQuery, id, friendId);
+        jdbcTemplate.update(QueryForUsers.INSERT_FRIENDSHIP, id, friendId);
+        log.debug("Дружба между пользователями " + id + " и " + friendId + " создана");
     }
 
     private void updateFriendship(Friendship friendship) {
-        sqlQuery = QueryForUsers.UPDATE_FRIENDSHIP;
-        jdbcTemplate.update(sqlQuery, friendship.getUserId(), friendship.getFriendId(), friendship.getIsConfirmed(), friendship.getFriendshipId());
+        jdbcTemplate.update(QueryForUsers.UPDATE_FRIENDSHIP, friendship.getUserId(), friendship.getFriendId(), friendship.getIsConfirmed(), friendship.getFriendshipId());
+        log.debug("Дружба между пользователями " + friendship.getUserId() + " и " + friendship.getFriendId() + " обновлена");
     }
 
     private void deleteFriendship(Long id) {
-        sqlQuery = QueryForUsers.DELETE_FRIENDSHIP;
-        jdbcTemplate.update(sqlQuery, id);
+        jdbcTemplate.update(QueryForUsers.DELETE_FRIENDSHIP, id);
+        log.debug("Дружба с ID: " + id + " удалена");
     }
 }
 

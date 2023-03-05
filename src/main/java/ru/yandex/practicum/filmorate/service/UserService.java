@@ -15,54 +15,54 @@ import java.util.List;
 @Slf4j
 @Service
 public class UserService {
-    private final UserStorage storage;
+    private final UserStorage userStorage;
 
     @Autowired
-    public UserService(@Qualifier("UserDb") UserStorage storage) {
+    public UserService(@Qualifier("UserDb") UserStorage userStorage) {
 
-        this.storage = storage;
+        this.userStorage = userStorage;
     }
 
     public void addFriend(long id, long friendId) {
         getUserById(id);
         getUserById(friendId);
-        this.storage.addFriend(id, friendId);
+        userStorage.addFriend(id, friendId);
     }
 
     public void deleteFriend(long id, long friendId) {
         getUserById(id);
         getUserById(friendId);
-        this.storage.deleteFriend(id, friendId);
+        userStorage.deleteFriend(id, friendId);
     }
 
     public List<User> getFriends(long id) {
         getUserById(id);
-        return this.storage.getFriends(id);
+        return userStorage.getFriends(id);
     }
 
     public List<User> getCommonFriends(long id, long friendId) {
         getUserById(id);
         getUserById(friendId);
-        return this.storage.getCommonFriends(id, friendId);
+        return userStorage.getCommonFriends(id, friendId);
     }
 
     public User create(User user) {
         UserValidator.isValid(user);
-        return storage.create(user);
+        return userStorage.create(user);
     }
 
     public User update(User user) {
         UserValidator.isValid(user);
         getUserById(user.getId());
-        return storage.update(user);
+        return userStorage.update(user);
     }
 
     public List<User> findAll() {
-        return storage.findAll();
+        return userStorage.findAll();
     }
 
     public User getUserById(long id) {
-        User user = storage.getUserById(id);
+        User user = userStorage.getUserById(id);
         if (user == null) {
             throw new NotFoundException("Пользователь", id);
         }

@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.storage.imp.genre;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -12,9 +13,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Component
+@Slf4j
 public class GenreDb implements GenreStorage {
     private final JdbcTemplate jdbcTemplate;
-    private String sqlQuery;
 
     @Autowired
     public GenreDb(JdbcTemplate jdbcTemplate) {
@@ -23,11 +24,12 @@ public class GenreDb implements GenreStorage {
 
     @Override
     public Genre getGenreById(Integer id) {
-        sqlQuery = QueryForGenre.SELECT_BY_ID;
-        SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sqlQuery, id);
+        SqlRowSet rowSet = jdbcTemplate.queryForRowSet(QueryForGenre.SELECT_BY_ID, id);
         if (rowSet.next()) {
+            log.debug("Жанр с ID: " + id + " успешно найден");
             return genreBuilder(rowSet);
         } else {
+            log.debug("Жанр с ID: " + id + " не найден в БД");
             return null;
         }
     }
@@ -35,13 +37,13 @@ public class GenreDb implements GenreStorage {
     @Override
     public List<Genre> findAll() {
         List<Genre> genreList = new ArrayList<>();
-
-        sqlQuery = QueryForGenre.SELECT_ALL;
-        SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sqlQuery);
+        SqlRowSet rowSet = jdbcTemplate.queryForRowSet(QueryForGenre.SELECT_ALL);
         while (rowSet.next()) {
             Genre genre = genreBuilder(rowSet);
             if (genre != null) {
                 genreList.add(genre);
+            }else {
+                log.debug("Ошибка создания жанра :" + rowSet);
             }
         }
         return genreList;

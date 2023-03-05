@@ -16,48 +16,50 @@ import java.util.List;
 @Service
 
 public class FilmService {
-    private final FilmStorage storage;
+    private final FilmStorage filmStorage;
     private final UserService userService;
 
     @Autowired
-    public FilmService(@Qualifier("FilmDb") FilmStorage storage, UserService service) {
-        this.storage = storage;
-        this.userService = service;
+    public FilmService(@Qualifier("FilmDb") FilmStorage filmStorage, UserService userService) {
+        this.filmStorage = filmStorage;
+        this.userService = userService;
     }
 
     public void addLike(long filmId, long userId) {
         getFilmById(filmId);
         userService.getUserById(userId);
-        storage.addLike(filmId, userId);
+        filmStorage.addLike(filmId, userId);
     }
 
     public void deleteLike(long filmId, long userId) {
         getFilmById(filmId);
         userService.getUserById(userId);
-        storage.removeLike(filmId, userId);
+        filmStorage.removeLike(filmId, userId);
     }
 
     public List<Film> getMostPopularFilms(int count) {
-        return storage.getMostPopularFilms(count);
+        return filmStorage.getMostPopularFilms(count);
     }
 
     public Film create(Film film) {
         FilmValidator.isValid(film);
-        return storage.create(film);
+        log.debug("Фильм " + film.toString() + " прошёл валидацию");
+        return filmStorage.create(film);
     }
 
     public Film update(Film film) {
         FilmValidator.isValid(film);
+        log.debug("Фильм " + film.toMap() + " прошёл валидацию");
         getFilmById(film.getId());
-        return storage.update(film);
+        return filmStorage.update(film);
     }
 
     public List<Film> findAll() {
-        return storage.findAll();
+        return filmStorage.findAll();
     }
 
     public Film getFilmById(long id) {
-        Film film = storage.getFilmById(id);
+        Film film = filmStorage.getFilmById(id);
         if (film == null) {
             throw new NotFoundException("Фильм", id);
         }
