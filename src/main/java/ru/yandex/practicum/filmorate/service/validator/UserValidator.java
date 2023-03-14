@@ -13,6 +13,7 @@ public class UserValidator {
         }
 
         if (user.getName() == null || user.getName().isBlank()) {
+            log.debug("Устнавливаем Имя " + user.getLogin());
             user.setName(user.getLogin());
         }
     }

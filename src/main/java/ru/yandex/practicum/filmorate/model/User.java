@@ -8,7 +8,9 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Past;
 import javax.validation.constraints.Pattern;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 @Data
@@ -16,10 +18,15 @@ import java.util.Set;
 public class User {
     private final Set<Long> friends = new HashSet<>();
     long id;
-    @Email(message = "Не корректный адрес электронной почты") @NotBlank(message = "Адрес электронной почты не может быть пустым") String email;
-    @NotBlank(message = "Логин не может быть пустым") @Pattern(regexp = "\\S+", message = "Логин не может содержать пробелы") String login;
+    @Email(message = "Не корректный адрес электронной почты")
+    @NotBlank(message = "Адрес электронной почты не может быть пустым")
+    String email;
+    @NotBlank(message = "Логин не может быть пустым")
+    @Pattern(regexp = "\\S+", message = "Логин не может содержать пробелы")
+    String login;
     String name;
-    @Past(message = "Дата рождения не может быть в будущем") LocalDate birthday;
+    @Past(message = "Дата рождения не может быть в будущем")
+    LocalDate birthday;
 
     public void addFriend(long id) {
         this.friends.add(id);
@@ -27,5 +34,14 @@ public class User {
 
     public void deleteFriend(long id) {
         this.friends.remove(id);
+    }
+
+    public Map<String, Object> toMap() {
+        Map<String, Object> values = new HashMap<>();
+        values.put("email", email);
+        values.put("login", login);
+        values.put("name", name);
+        values.put("birthday", birthday);
+        return values;
     }
 }

@@ -1,6 +1,7 @@
-package ru.yandex.practicum.filmorate.storage.inMemoryImpl;
+package ru.yandex.practicum.filmorate.storage.imp.film;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
@@ -9,6 +10,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
+@Qualifier("InMemoryFilmStorage")
 @Slf4j
 public class InMemoryFilmStorage implements FilmStorage {
     Map<Long, Film> films = new HashMap<>();
@@ -19,20 +21,20 @@ public class InMemoryFilmStorage implements FilmStorage {
         film.setId(id);
         id++;
         films.put(film.getId(), film);
-        log.info("Добавлен фильм :" + film);
+        log.debug("Добавлен фильм :" + film);
         return film;
     }
 
     @Override
     public Film update(Film film) {
-        log.info("Фильм :" + films.get(film.getId()) + " заменён на " + film);
+        log.debug("Фильм :" + films.get(film.getId()) + " заменён на " + film);
         films.put(film.getId(), film);
         return film;
     }
 
     @Override
-    public Collection<Film> findAll() {
-        return films.values();
+    public List<Film> findAll() {
+        return new ArrayList<>(films.values());
     }
 
     @Override
@@ -41,12 +43,28 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public Collection<Film> getMostPopularFilms(int count) {
+    public List<Film> getMostPopularFilms(int count) {
         return films
                 .values()
                 .stream()
                 .sorted(Collections.reverseOrder(Comparator.comparingLong(film -> film.getLikes().size())))
                 .limit(count)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public void addLike(Long id, Long userId) {
+        Film film = getFilmById(id);
+        if (film != null) {
+            film.addLike(userId);
+        }
+    }
+
+    @Override
+    public void removeLike(Long id, Long userId) {
+        Film film = getFilmById(id);
+        if (film != null) {
+            film.deleteLike(userId);
+        }
     }
 }
